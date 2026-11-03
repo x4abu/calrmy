@@ -1,0 +1,84 @@
+name: Build and Release cAlrmy APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Android Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Prepare environment configuration
+        run: |
+          if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
+            echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+          else
+            cp .env.example .env
+          fi
+          echo "DEFAULT_MODEL=gemini-3.5-flash-lite" >> .env
+          echo "DEFAULT_TTS_MODEL=gemini-3.8-flash-lite-tts" >> .env
+          echo "DEFAULT_VOICE=Aoede" >> .env
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      - name: Prepare APK artifact
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk cAlrmy-v1.0.0.apk
+          ls -lh cAlrmy-v1.0.0.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cAlrmy-Release-APK
+          path: cAlrmy-v1.0.0.apk
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          tag_name: v1.0.0
+          name: "cAlrmy v1.0.0 — Release APK"
+          body: |
+            ### 🌅 cAlrmy v1.0.0 — Premium AI Alarm & Wake-up Companion
+            
+            **What's inside:**
+            - 🎨 Glassmorphic Linear-style aesthetic UI (Dark & Light modes).
+            - 🎙️ Google AI Studio Realistic Human Voice (`gemini-3.8-flash-lite-tts` + `gemini-3.5-flash-lite`).
+            - 🎵 24 Studio-Quality alarm tones (Gentle Wake, Nature, Ambient Synth, Classic Alarms).
+            - ⏰ Full scheduling suite: Repeat days, volume, vibration, wake-up escalation, snooze & dismiss.
+            - 🔒 Backend-secured `.env` setup.
+
+            #### 📥 Direct Download:
+            Download **`cAlrmy-v1.0.0.apk`** below to install directly on your Android device!
+          files: cAlrmy-v1.0.0.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
