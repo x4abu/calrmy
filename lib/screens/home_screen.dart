@@ -591,14 +591,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                           : mute.withOpacity(0.5),
                                     ),
                                   ),
-                                  Text(
-                                    '${alarm.daysSummary} · ${alarm.sound.replaceAll('.wav', '').replaceAll('_', ' ')}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      color: mute,
-                                    ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      if (alarm.mission != 'none') ...[
+                                        Container(
+                                          margin: const EdgeInsets.only(right: 6),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 6, vertical: 1.5),
+                                          decoration: BoxDecoration(
+                                            color: Colors.amber.withOpacity(0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            alarm.mission.toUpperCase(),
+                                            style: const TextStyle(
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.amber,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                      Expanded(
+                                        child: Text(
+                                          '${alarm.daysSummary} · ${alarm.sound.replaceAll('.wav', '').replaceAll('_', ' ')}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: mute,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

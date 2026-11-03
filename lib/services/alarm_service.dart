@@ -74,9 +74,25 @@ class AlarmService {
     }
   }
 
+  Timer? _rampTimer;
+
   void triggerRing(Alarm alarm) {
     ringingAlarmNotifier.value = alarm;
-    SoundService.instance.playLooping(alarm.sound, volume: alarm.volume);
+    _rampTimer?.cancel();
+    if (alarm.gradualWake) {
+      double currentVol = 0.15;
+      SoundService.instance.playLooping(alarm.sound, volume: currentVol);
+      _rampTimer = Timer.periodic(const Duration(seconds: 2), (t) {
+        currentVol += (alarm.volume - 0.15) / 12;
+        if (currentVol >= alarm.volume) {
+          currentVol = alarm.volume;
+          t.cancel();
+        }
+        SoundService.instance.setVolume(currentVol);
+      });
+    } else {
+      SoundService.instance.playLooping(alarm.sound, volume: alarm.volume);
+    }
     _showNotification(alarm);
   }
 
@@ -131,6 +147,7 @@ class AlarmService {
   }
 
   Future<void> dismiss() async {
+    _rampTimer?.cancel();
     ringingAlarmNotifier.value = null;
     await SoundService.instance.stop();
 

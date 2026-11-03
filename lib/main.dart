@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/alarm.dart';
+import 'screens/ai_hub_screen.dart';
+import 'screens/clock_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/talk_screen.dart';
+import 'screens/timer_stopwatch_screen.dart';
 import 'services/alarm_service.dart';
 import 'theme/app_theme.dart';
 import 'widgets/new_alarm_modal.dart';
@@ -129,7 +131,7 @@ class _MainShellState extends State<MainShell> {
           ),
         ),
 
-        // Ambient Decorative Blobs
+        // Ambient Decorative Glowing Blobs
         Positioned(
           top: -80,
           left: -80,
@@ -167,7 +169,9 @@ class _MainShellState extends State<MainShell> {
                 isDark: widget.isDark,
                 onOpenSheet: _openNewAlarmSheet,
               ),
-              TalkScreen(isDark: widget.isDark),
+              ClockScreen(isDark: widget.isDark),
+              TimerStopwatchScreen(isDark: widget.isDark),
+              AiHubScreen(isDark: widget.isDark),
               SettingsScreen(
                 isDark: widget.isDark,
                 onThemeChanged: widget.onThemeChanged,
@@ -175,38 +179,54 @@ class _MainShellState extends State<MainShell> {
             ],
           ),
 
-          // Floating Glass Bottom Navigation Bar
+          // 5-Tab Floating Glass Navigation Bar
           bottomNavigationBar: SafeArea(
             child: Container(
-              height: 68,
-              margin: const EdgeInsets.only(left: 28, right: 28, bottom: 16),
+              height: 66,
+              margin: const EdgeInsets.only(left: 18, right: 18, bottom: 12),
               child: GlassBox(
                 isDark: widget.isDark,
                 borderRadius: 99,
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildNavItem(
                       index: 0,
                       label: 'Alarms',
-                      icon: Icons.alarm,
+                      icon: Icons.alarm_rounded,
                       acc: acc,
                       ink: ink,
                       mute: mute,
                     ),
                     _buildNavItem(
                       index: 1,
-                      label: 'Talk',
-                      icon: Icons.graphic_eq,
+                      label: 'World',
+                      icon: Icons.public_rounded,
                       acc: acc,
                       ink: ink,
                       mute: mute,
                     ),
                     _buildNavItem(
                       index: 2,
+                      label: 'Timer',
+                      icon: Icons.hourglass_bottom_rounded,
+                      acc: acc,
+                      ink: ink,
+                      mute: mute,
+                    ),
+                    _buildNavItem(
+                      index: 3,
+                      label: 'AI Hub',
+                      icon: Icons.auto_awesome_rounded,
+                      acc: acc,
+                      ink: ink,
+                      mute: mute,
+                    ),
+                    _buildNavItem(
+                      index: 4,
                       label: 'Settings',
-                      icon: Icons.tune,
+                      icon: Icons.tune_rounded,
                       acc: acc,
                       ink: ink,
                       mute: mute,
@@ -248,12 +268,14 @@ class _MainShellState extends State<MainShell> {
         setState(() => _currentIndex = index);
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 240),
         curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.white.withOpacity(widget.isDark ? 0.16 : 0.4)
+              ? (widget.isDark
+                  ? Colors.white.withOpacity(0.14)
+                  : Colors.black.withOpacity(0.08))
               : Colors.transparent,
           borderRadius: BorderRadius.circular(99),
         ),
@@ -263,16 +285,16 @@ class _MainShellState extends State<MainShell> {
             Icon(
               icon,
               size: 20,
-              color: isSelected ? ink : mute,
+              color: isSelected ? acc : mute,
             ),
             if (isSelected) ...[
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: ink,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isSelected ? ink : mute,
                 ),
               ),
             ],

@@ -45,39 +45,43 @@ jobs:
         run: flutter pub get
 
       - name: Build Android APK
-        run: flutter build apk --release --android-skip-build-dependency-validation
+        run: flutter build apk --release --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} --android-skip-build-dependency-validation
 
       - name: Prepare APK artifact
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk cAlrmy-v1.0.1.apk
-          ls -lh cAlrmy-v1.0.1.apk
+          cp build/app/outputs/flutter-apk/app-release.apk cAlrmy-v1.0.2.apk
+          ls -lh cAlrmy-v1.0.2.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: cAlrmy-Release-APK
-          path: cAlrmy-v1.0.1.apk
+          path: cAlrmy-v1.0.2.apk
           if-no-files-found: error
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.0.1
-          name: "cAlrmy v1.0.1 — Custom App Logo & Release APK"
+          tag_name: v1.0.2
+          name: "cAlrmy v1.0.2 — Complete Clock & AI Suite Upgrade"
           body: |
-            ### 🌅 cAlrmy v1.0.1 — Premium AI Alarm & Wake-up Companion
+            ### 🌅 cAlrmy v1.0.2 — The Ultimate AI Alarm & Clock Suite
 
-            **What's new in v1.0.1:**
-            - 🖼️ Updated with new custom app logo and Android launcher icons across all screen densities.
-            - 🌟 In-app brand avatar in Home and Settings headers.
-            - 🎙️ Google AI Studio Realistic Voice (`gemini-3.8-flash-lite-tts`).
-            - 🎵 24 Studio-Quality alarm tones.
-            - 🔒 Backend-secured `.env` integration.
+            **What's new in v1.0.2:**
+            - 🧭 **5-Tab Navigation Suite**: Alarms, World Clock & Sleep Cycles, Timer & Stopwatch, AI Studio Hub, Settings.
+            - ⚡ **Wake-Up Missions & Challenges**: Math puzzles, AI riddles, fast taps/shake, and savage AI morning roast.
+            - 🌙 **AI Dream Journal**: Describe your dream to get deep subconscious psychological interpretations.
+            - 📖 **AI Bedtime Stories**: Ambient storytelling to lull you to sleep with gentle voice narration.
+            - ☀️ **Daily Morning Briefing**: Daily spark, goal focus, and power mindset for the day.
+            - ⏱️ **Stopwatch & Timer**: Millisecond-accurate lap tracking + circular countdown timer with presets.
+            - 💤 **90-Minute Sleep Cycle Calculator**: Wake up refreshed at cycle intervals with 1-tap scheduling.
+            - 🔊 **Gradual Wake (Ascending Volume)**: Soft 15% start with smooth 25-second volume ramp-up.
+            - 🔒 **Bulletproof Backend Connection**: Live ping test with sub-300ms latency on `gemini-3.5-flash-lite` and `gemini-3.8-flash-lite-tts`.
 
             #### 📥 Direct Download:
-            Download **`cAlrmy-v1.0.1.apk`** below to install directly on your Android device!
-          files: cAlrmy-v1.0.1.apk
+            Download **`cAlrmy-v1.0.2.apk`** below to install directly on your Android device!
+          files: cAlrmy-v1.0.2.apk
           draft: false
           prerelease: false
           make_latest: true

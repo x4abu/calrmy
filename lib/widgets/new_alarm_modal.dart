@@ -28,6 +28,8 @@ class _NewAlarmModalState extends State<NewAlarmModal> {
   late String _selectedSound;
   late double _volume;
   late bool _vibrate;
+  late String _mission;
+  late bool _gradualWake;
 
   final SoundService _soundService = SoundService.instance;
   bool _isPlayingPreview = false;
@@ -44,6 +46,8 @@ class _NewAlarmModalState extends State<NewAlarmModal> {
       _selectedSound = al.sound;
       _volume = al.volume;
       _vibrate = al.vibrate;
+      _mission = al.mission;
+      _gradualWake = al.gradualWake;
     } else {
       _selectedTime = const TimeOfDay(hour: 6, minute: 30);
       _labelController = TextEditingController(text: 'Wake up');
@@ -52,6 +56,8 @@ class _NewAlarmModalState extends State<NewAlarmModal> {
       _selectedSound = 'zen_singing_bowl.wav';
       _volume = 0.9;
       _vibrate = true;
+      _mission = 'none';
+      _gradualWake = true;
     }
   }
 
@@ -78,228 +84,334 @@ class _NewAlarmModalState extends State<NewAlarmModal> {
     final acc = widget.isDark ? AppColors.darkAccent : AppColors.lightAccent;
     final ink = widget.isDark ? AppColors.darkInk : AppColors.lightInk;
     final mute = widget.isDark ? AppColors.darkMute : AppColors.lightMute;
-    final bg = widget.isDark ? AppColors.darkBg2 : AppColors.lightBg2;
+
+    final displayHour = (_selectedTime.hour % 12 == 0)
+        ? 12
+        : (_selectedTime.hour % 12);
+    final displayMin =
+        _selectedTime.minute.toString().padLeft(2, '0');
+    final displayPeriod = _selectedTime.hour < 12 ? 'AM' : 'PM';
 
     const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
     return Container(
       decoration: BoxDecoration(
-        color: bg.withOpacity(0.96),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(widget.isDark ? 0.15 : 0.6),
-            width: 1.0,
-          ),
-        ),
+        color: widget.isDark ? AppColors.darkBg2 : AppColors.lightBg1,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 28,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag Indicator
+            // Drag Handle
             Center(
               child: Container(
-                width: 44,
+                width: 38,
                 height: 4,
                 decoration: BoxDecoration(
                   color: mute.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(99),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 18),
 
-            // Big 64pt Time Picker display
-            GestureDetector(
-              onTap: () async {
-                final picked = await showTimePicker(
-                  context: context,
-                  initialTime: _selectedTime,
-                  builder: (context, child) {
-                    return Theme(
-                      data: widget.isDark ? ThemeData.dark() : ThemeData.light(),
-                      child: child!,
-                    );
-                  },
-                );
-                if (picked != null) {
-                  setState(() => _selectedTime = picked);
-                }
-              },
-              child: Center(
-                child: Text(
-                  '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
-                  style: GoogleFonts.interTight(
-                    fontSize: 64,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -2,
+            // Modal Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  widget.existingAlarm == null ? 'Set Alarm' : 'Edit Alarm',
+                  style: GoogleFonts.instrumentSerif(
+                    fontSize: 28,
+                    fontStyle: FontStyle.italic,
                     color: ink,
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 18),
-
-            // Label Field
-            TextField(
-              controller: _labelController,
-              style: TextStyle(color: ink),
-              decoration: InputDecoration(
-                labelText: 'Label',
-                labelStyle: TextStyle(color: mute),
-                filled: true,
-                fillColor: Colors.white.withOpacity(widget.isDark ? 0.08 : 0.4),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Goal Field
-            TextField(
-              controller: _goalController,
-              style: TextStyle(color: ink),
-              decoration: InputDecoration(
-                labelText: 'Goal for this alarm (optional)',
-                hintText: 'e.g. Study Physics at 6 AM',
-                hintStyle: TextStyle(color: mute.withOpacity(0.6)),
-                labelStyle: TextStyle(color: mute),
-                filled: true,
-                fillColor: Colors.white.withOpacity(widget.isDark ? 0.08 : 0.4),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Sound Selector (24 studio sounds) with Play button
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedSound,
-                    dropdownColor: bg,
-                    style: TextStyle(color: ink, fontSize: 14),
-                    decoration: InputDecoration(
-                      labelText: 'Alarm Sound (24 available)',
-                      labelStyle: TextStyle(color: mute),
-                      filled: true,
-                      fillColor:
-                          Colors.white.withOpacity(widget.isDark ? 0.08 : 0.4),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    items: SoundService.availableSounds.map((s) {
-                      return DropdownMenuItem(
-                        value: s.filename,
-                        child: Text('${s.title} (${s.category})'),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() => _selectedSound = val);
-                        if (_isPlayingPreview) {
-                          _soundService.previewSound(val, volume: _volume);
-                        }
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filledTonal(
-                  onPressed: _togglePreview,
-                  icon: Icon(
-                    _isPlayingPreview ? Icons.stop : Icons.play_arrow,
-                    color: widget.isDark
-                        ? AppColors.darkAccent
-                        : AppColors.lightAccent,
-                  ),
+                IconButton(
+                  icon: Icon(Icons.close, color: mute),
+                  onPressed: () {
+                    _soundService.stop();
+                    Navigator.pop(context);
+                  },
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
-            // Day Selector Pills
+            // Giant 64pt Time Selector
+            Center(
+              child: InkWell(
+                onTap: () async {
+                  final picked = await showTimePicker(
+                    context: context,
+                    initialTime: _selectedTime,
+                  );
+                  if (picked != null) {
+                    setState(() => _selectedTime = picked);
+                  }
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '$displayHour:$displayMin',
+                        style: GoogleFonts.interTight(
+                          fontSize: 64,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -3,
+                          color: ink,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        displayPeriod,
+                        style: GoogleFonts.interTight(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: acc,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Repeating Days Selector
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(7, (i) {
-                final isSelected = _selectedDays.contains(i);
-                return GestureDetector(
+              children: List.generate(7, (index) {
+                final isSelected = _selectedDays.contains(index);
+                return InkWell(
                   onTap: () {
                     setState(() {
                       if (isSelected) {
-                        _selectedDays.remove(i);
+                        _selectedDays.remove(index);
                       } else {
-                        _selectedDays.add(i);
+                        _selectedDays.add(index);
                       }
                     });
                   },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 42,
-                    height: 42,
+                  borderRadius: BorderRadius.circular(99),
+                  child: Container(
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: isSelected
                           ? acc
-                          : Colors.white.withOpacity(widget.isDark ? 0.1 : 0.4),
+                          : (widget.isDark
+                              ? Colors.white.withOpacity(0.06)
+                              : Colors.black.withOpacity(0.04)),
+                      border: Border.all(
+                        color: isSelected
+                            ? acc
+                            : (widget.isDark
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.black.withOpacity(0.08)),
+                      ),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      dayLabels[i],
+                      dayLabels[index],
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
                         color: isSelected
                             ? (widget.isDark
                                 ? AppColors.darkAccentInk
-                                : Colors.white)
-                            : ink,
+                                : Colors.black)
+                            : mute,
                       ),
                     ),
                   ),
                 );
               }),
             ),
+            const SizedBox(height: 20),
+
+            // Label & Goal Input
+            GlassBox(
+              isDark: widget.isDark,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _labelController,
+                    style: TextStyle(color: ink, fontSize: 14),
+                    decoration: InputDecoration(
+                      labelText: 'Label',
+                      labelStyle: TextStyle(color: mute, fontSize: 12),
+                      border: InputBorder.none,
+                      hintText: 'Morning routine, Gym, Study…',
+                      hintStyle: TextStyle(color: mute.withOpacity(0.4)),
+                    ),
+                  ),
+                  Divider(color: Colors.white.withOpacity(0.08)),
+                  TextField(
+                    controller: _goalController,
+                    style: TextStyle(color: ink, fontSize: 14),
+                    decoration: InputDecoration(
+                      labelText: 'AI Goal for this alarm',
+                      labelStyle: TextStyle(color: mute, fontSize: 12),
+                      border: InputBorder.none,
+                      hintText: 'e.g. Finish math homework, hit 5k run…',
+                      hintStyle: TextStyle(color: mute.withOpacity(0.4)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 18),
 
-            // Volume & Vibration
-            Row(
+            // Wake-up Mission Challenge Selector
+            Text(
+              'DISMISS CHALLENGE / MISSION',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.0,
+                color: mute,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Icon(Icons.volume_up, color: mute, size: 20),
-                Expanded(
-                  child: Slider(
-                    value: _volume,
-                    min: 0.1,
-                    max: 1.0,
-                    activeColor: acc,
-                    onChanged: (v) {
-                      setState(() => _volume = v);
-                    },
+                _buildMissionChip('none', 'Standard Dismiss', acc, ink, mute),
+                _buildMissionChip('math', '🧮 Math Puzzle', acc, ink, mute),
+                _buildMissionChip('riddle', '🧩 AI Riddle', acc, ink, mute),
+                _buildMissionChip('shake', '📱 Fast Taps', acc, ink, mute),
+                _buildMissionChip('roast', '🔥 Savage Roast', acc, ink, mute),
+              ],
+            ),
+            const SizedBox(height: 18),
+
+            // Sound Selector with Preview
+            Text(
+              'ALARM TONE (24 Available)',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.0,
+                color: mute,
+              ),
+            ),
+            const SizedBox(height: 8),
+            GlassBox(
+              isDark: widget.isDark,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedSound,
+                        dropdownColor: widget.isDark
+                            ? AppColors.darkCard
+                            : AppColors.lightCard,
+                        style: TextStyle(color: ink, fontSize: 14),
+                        isExpanded: true,
+                        items: SoundService.availableSounds.map((snd) {
+                          return DropdownMenuItem<String>(
+                            value: snd.filename,
+                            child: Text(
+                              '${snd.title} (${snd.category})',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedSound = val);
+                            if (_isPlayingPreview) {
+                              _soundService.previewSound(val, volume: _volume);
+                            }
+                          }
+                        },
+                      ),
+                    ),
                   ),
+                  IconButton(
+                    icon: Icon(
+                      _isPlayingPreview ? Icons.stop : Icons.play_arrow,
+                      color: acc,
+                    ),
+                    onPressed: _togglePreview,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Ascending Volume Toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Gradual Wake (Ascending Volume)',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: ink,
+                      ),
+                    ),
+                    Text(
+                      'Starts softly at 15% and ramps up over 25s',
+                      style: TextStyle(fontSize: 11, color: mute),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${(_volume * 100).toInt()}%',
-                  style: TextStyle(color: mute, fontSize: 13),
+                Switch(
+                  value: _gradualWake,
+                  onChanged: (val) => setState(() => _gradualWake = val),
+                  activeColor: acc,
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
 
-            // Action Buttons
+            // Vibration Toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Vibrate on ring',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: ink,
+                  ),
+                ),
+                Switch(
+                  value: _vibrate,
+                  onChanged: (val) => setState(() => _vibrate = val),
+                  activeColor: acc,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Actions: [ Cancel | Save ]
             Row(
               children: [
                 Expanded(
@@ -339,6 +451,8 @@ class _NewAlarmModalState extends State<NewAlarmModal> {
                         sound: _selectedSound,
                         volume: _volume,
                         vibrate: _vibrate,
+                        mission: _mission,
+                        gradualWake: _gradualWake,
                       );
                       widget.onSave(alarm);
                       Navigator.pop(context);
@@ -362,6 +476,39 @@ class _NewAlarmModalState extends State<NewAlarmModal> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMissionChip(
+      String key, String label, Color acc, Color ink, Color mute) {
+    final isSelected = _mission == key;
+
+    return InkWell(
+      onTap: () => setState(() => _mission = key),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? acc.withOpacity(0.2)
+              : (widget.isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.black.withOpacity(0.04)),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? acc : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? acc : ink,
+          ),
         ),
       ),
     );

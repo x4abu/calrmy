@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 class Alarm {
   final int id;
   String time; // "HH:mm" in 24h
@@ -12,6 +10,8 @@ class Alarm {
   double volume;
   bool isTemporary;
   int snoozeMinutes;
+  String mission; // 'none', 'math', 'riddle', 'shake', 'roast'
+  bool gradualWake;
 
   Alarm({
     required this.id,
@@ -25,6 +25,8 @@ class Alarm {
     this.volume = 0.9,
     this.isTemporary = false,
     this.snoozeMinutes = 5,
+    this.mission = 'none',
+    this.gradualWake = true,
   });
 
   int get hour => int.parse(time.split(':')[0]);
@@ -33,7 +35,6 @@ class Alarm {
   String get formattedDisplayTime {
     final h = hour;
     final m = minute.toString().padLeft(2, '0');
-    final period = h < 12 ? 'AM' : 'PM';
     final displayHour = (h % 12 == 0) ? 12 : (h % 12);
     return '$displayHour:$m';
   }
@@ -61,7 +62,8 @@ class Alarm {
   DateTime nextTriggerDateTime() {
     final now = DateTime.now();
     for (int i = 0; i < 8; i++) {
-      final candidate = DateTime(now.year, now.month, now.day + i, hour, minute);
+      final candidate =
+          DateTime(now.year, now.month, now.day + i, hour, minute);
       if (candidate.isAfter(now)) {
         if (days.isEmpty || days.contains(candidate.weekday % 7)) {
           return candidate;
@@ -69,6 +71,38 @@ class Alarm {
       }
     }
     return DateTime(now.year, now.month, now.day + 1, hour, minute);
+  }
+
+  Alarm copyWith({
+    int? id,
+    String? time,
+    String? label,
+    String? goal,
+    List<int>? days,
+    bool? isEnabled,
+    String? sound,
+    bool? vibrate,
+    double? volume,
+    bool? isTemporary,
+    int? snoozeMinutes,
+    String? mission,
+    bool? gradualWake,
+  }) {
+    return Alarm(
+      id: id ?? this.id,
+      time: time ?? this.time,
+      label: label ?? this.label,
+      goal: goal ?? this.goal,
+      days: days ?? List.from(this.days),
+      isEnabled: isEnabled ?? this.isEnabled,
+      sound: sound ?? this.sound,
+      vibrate: vibrate ?? this.vibrate,
+      volume: volume ?? this.volume,
+      isTemporary: isTemporary ?? this.isTemporary,
+      snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
+      mission: mission ?? this.mission,
+      gradualWake: gradualWake ?? this.gradualWake,
+    );
   }
 
   Map<String, dynamic> toJson() => {
@@ -83,6 +117,8 @@ class Alarm {
         'volume': volume,
         'isTemporary': isTemporary,
         'snoozeMinutes': snoozeMinutes,
+        'mission': mission,
+        'gradualWake': gradualWake,
       };
 
   factory Alarm.fromJson(Map<String, dynamic> json) => Alarm(
@@ -90,12 +126,17 @@ class Alarm {
         time: json['time'] as String,
         label: json['label'] as String? ?? 'Alarm',
         goal: json['goal'] as String? ?? '',
-        days: (json['days'] as List<dynamic>?)?.map((e) => e as int).toList() ?? [],
+        days: (json['days'] as List<dynamic>?)
+                ?.map((e) => e as int)
+                .toList() ??
+            [],
         isEnabled: json['isEnabled'] as bool? ?? true,
         sound: json['sound'] as String? ?? 'zen_singing_bowl.wav',
         vibrate: json['vibrate'] as bool? ?? true,
         volume: (json['volume'] as num?)?.toDouble() ?? 0.9,
         isTemporary: json['isTemporary'] as bool? ?? false,
         snoozeMinutes: json['snoozeMinutes'] as int? ?? 5,
+        mission: json['mission'] as String? ?? 'none',
+        gradualWake: json['gradualWake'] as bool? ?? true,
       );
 }
