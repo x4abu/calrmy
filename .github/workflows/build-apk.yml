@@ -49,36 +49,37 @@ jobs:
 
       - name: Prepare APK artifact
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk cAlrmy-v1.0.0.apk
-          ls -lh cAlrmy-v1.0.0.apk
+          cp build/app/outputs/flutter-apk/app-release.apk cAlrmy-v1.0.1.apk
+          ls -lh cAlrmy-v1.0.1.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: cAlrmy-Release-APK
-          path: cAlrmy-v1.0.0.apk
+          path: cAlrmy-v1.0.1.apk
           if-no-files-found: error
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.0.0
-          name: "cAlrmy v1.0.0 — Release APK"
+          tag_name: v1.0.1
+          name: "cAlrmy v1.0.1 — Custom App Logo & Release APK"
           body: |
-            ### 🌅 cAlrmy v1.0.0 — Premium AI Alarm & Wake-up Companion
-            
-            **What's inside:**
-            - 🎨 Glassmorphic Linear-style aesthetic UI (Dark & Light modes).
-            - 🎙️ Google AI Studio Realistic Human Voice (`gemini-3.8-flash-lite-tts` + `gemini-3.5-flash-lite`).
-            - 🎵 24 Studio-Quality alarm tones (Gentle Wake, Nature, Ambient Synth, Classic Alarms).
-            - ⏰ Full scheduling suite: Repeat days, volume, vibration, wake-up escalation, snooze & dismiss.
-            - 🔒 Backend-secured `.env` setup.
+            ### 🌅 cAlrmy v1.0.1 — Premium AI Alarm & Wake-up Companion
+
+            **What's new in v1.0.1:**
+            - 🖼️ Updated with new custom app logo and Android launcher icons across all screen densities.
+            - 🌟 In-app brand avatar in Home and Settings headers.
+            - 🎙️ Google AI Studio Realistic Voice (`gemini-3.8-flash-lite-tts`).
+            - 🎵 24 Studio-Quality alarm tones.
+            - 🔒 Backend-secured `.env` integration.
 
             #### 📥 Direct Download:
-            Download **`cAlrmy-v1.0.0.apk`** below to install directly on your Android device!
-          files: cAlrmy-v1.0.0.apk
+            Download **`cAlrmy-v1.0.1.apk`** below to install directly on your Android device!
+          files: cAlrmy-v1.0.1.apk
           draft: false
           prerelease: false
+          make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

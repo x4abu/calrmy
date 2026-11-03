@@ -439,6 +439,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+
+          // App Logo & Version
+          Center(
+            child: Column(
+              children: [
+                Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: acc.withOpacity(0.25),
+                        blurRadius: 14,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Image.asset(
+                    'assets/icon/app_icon.png',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'cAlrmy',
+                  style: GoogleFonts.instrumentSerif(
+                    fontSize: 22,
+                    fontStyle: FontStyle.italic,
+                    color: ink,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'v1.0.1 • AI Wake-up Companion',
+                  style: TextStyle(fontSize: 12, color: mute),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

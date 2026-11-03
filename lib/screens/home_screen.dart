@@ -100,24 +100,60 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Greeting & User Name in Instrument Serif
-              Text(
-                _getGreeting(),
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: mute,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                _userName,
-                style: GoogleFonts.instrumentSerif(
-                  fontSize: 34,
-                  fontStyle: FontStyle.italic,
-                  color: ink,
-                  height: 1.1,
-                ),
+              // Greeting & User Name with App Logo
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getGreeting(),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: mute,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _userName,
+                        style: GoogleFonts.instrumentSerif(
+                          fontSize: 34,
+                          fontStyle: FontStyle.italic,
+                          color: ink,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: widget.isDark
+                            ? Colors.white.withOpacity(0.12)
+                            : Colors.black.withOpacity(0.08),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: acc.withOpacity(0.2),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.asset(
+                      'assets/icon/app_icon.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
